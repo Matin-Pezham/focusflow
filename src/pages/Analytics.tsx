@@ -1,124 +1,131 @@
 import React from "react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { BarChart3, CheckCircle2, CircleDashed, Sparkles } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { Card, MetricCard, Section } from "../components/ui";
+import { useThemeStore } from "../stores/useThemeStore";
+import { useTaskStore } from "../stores/useTaskStore";
+import { useTranslation } from "../hooks/useTranslation";
+
 const Analytics: React.FC = () => {
-  const goals = JSON.parse(
-    localStorage.getItem("focusflow-goals") || "[]"
-  );
+  const { theme } = useThemeStore();
+  const { t, isRTL } = useTranslation();
+  const isCyberpunk = theme === "cyberpunk";
+  const tasks = useTaskStore((state) => state.tasks);
 
-  const totalGoals = goals.length;
+  const totalTasks = tasks.length;
+  const backlogTasks = tasks.filter((task) => task.status === "backlog").length;
+  const progressTasks = tasks.filter((task) => task.status === "progress").length;
+  const completedTasks = tasks.filter((task) => task.status === "completed").length;
+  const highPriorityTasks = tasks.filter((task) => task.priority === "high").length;
+  const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+  const insightLabel = completionRate >= 80 ? t("analytics.insightStrong") : completionRate >= 50 ? t("analytics.insightSteady") : t("analytics.insightReset");
+  const insightCopy = completionRate >= 80 ? t("analytics.insightStrongCopy") : completionRate >= 50 ? t("analytics.insightSteadyCopy") : t("analytics.insightResetCopy");
 
-  const completedGoals = goals.filter(
-    (goal: any) => goal.completed
-  ).length;
+  const chartData = [
+    { name: t("analytics.backlog"), value: backlogTasks },
+    { name: t("analytics.inProgress"), value: progressTasks },
+    { name: t("analytics.completed"), value: completedTasks },
+  ];
 
-  const pendingGoals = totalGoals - completedGoals;
+  const COLORS = ["#64748b", "#f59e0b", "#22c55e"];
 
-  const completionRate =
-    totalGoals === 0
-      ? 0
-      : Math.round((completedGoals / totalGoals) * 100);
-const chartData = [
-  {
-    name: "Completed",
-    value: completedGoals,
-  },
-  {
-    name: "Pending",
-    value: pendingGoals,
-  },
-];
-
-const COLORS = ["#22c55e", "#ef4444"];
   return (
-    <div className="min-h-screen">
-      <div className="max-w-5xl mx-auto p-6 md:p-10">
-
-        <h1 className="text-3xl font-bold mb-2">
-          Analytics
-        </h1>
-
-        <p className="text-slate-500 mb-8">
-          Monitor your productivity progress.
-        </p>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-          <div className="bg-white border rounded-2xl p-6">
-            <p className="text-sm text-slate-500">
-              Total Goals
-            </p>
-
-            <h2 className="text-3xl font-bold mt-2">
-              {totalGoals}
-            </h2>
+    <div className="mx-auto max-w-7xl space-y-8 p-2 sm:p-4 lg:p-6" dir={isRTL ? "rtl" : "ltr"}>
+      <div className={`rounded-[32px] border p-6 sm:p-8 ${isCyberpunk ? "border-cyan-500/20 bg-[#0f172a]/70 shadow-[0_0_35px_rgba(34,211,238,0.10)] backdrop-blur-2xl" : "border-slate-200/70 bg-white/80 shadow-[0_20px_55px_rgba(15,23,42,0.06)] backdrop-blur-xl"}`}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm ${isCyberpunk ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300" : "border-slate-200 bg-slate-100 text-slate-600"}`}>
+              <Sparkles size={16} />
+              {t("analytics.pageBadge")}
+            </div>
+            <h1 className={`mt-4 text-3xl font-semibold tracking-tight sm:text-4xl ${isCyberpunk ? "text-cyan-300" : "text-slate-900"}`}>{t("analytics.pageTitle")}</h1>
+            <p className={`mt-3 max-w-2xl text-sm sm:text-base ${isCyberpunk ? "text-cyan-100/75" : "text-slate-600"}`}>{t("analytics.pageDescription")}</p>
           </div>
-
-          <div className="bg-white border rounded-2xl p-6">
-            <p className="text-sm text-slate-500">
-              Completed
-            </p>
-
-            <h2 className="text-3xl font-bold mt-2">
-              {completedGoals}
-            </h2>
+          <div className={`rounded-2xl border px-4 py-3 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-200" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
+            <div className="font-medium">{t("analytics.weeklyCompletion")}</div>
+            <div className="mt-1 text-2xl font-semibold">{completionRate}%</div>
           </div>
-
-          <div className="bg-white border rounded-2xl p-6">
-            <p className="text-sm text-slate-500">
-              Pending
-            </p>
-
-            <h2 className="text-3xl font-bold mt-2">
-              {pendingGoals}
-            </h2>
-          </div>
-
-          <div className="bg-white border rounded-2xl p-6">
-            <p className="text-sm text-slate-500">
-              Completion Rate
-            </p>
-
-            <h2 className="text-3xl font-bold mt-2">
-              {completionRate}%
-            </h2>
-          </div>
-
         </div>
-<div className="bg-white border rounded-2xl p-6 mt-8">
-  <h2 className="text-xl font-semibold mb-6">
-    Goal Distribution
-  </h2>
+      </div>
 
-  <div className="h-80">
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie
-          data={chartData}
-          cx="50%"
-          cy="50%"
-          outerRadius={100}
-          dataKey="value"
-          label
-        >
-          {chartData.map((_, index) => (
-            <Cell
-              key={index}
-              fill={COLORS[index]}
-            />
-          ))}
-        </Pie>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard title={t("dashboard.totalTasks")} value={totalTasks} description={t("dashboard.totalTasksDesc")} icon={BarChart3} trend="Stable view" />
+        <MetricCard title={t("dashboard.backlog")} value={backlogTasks} description={t("dashboard.backlogDesc")} icon={CircleDashed} trend="Needs a plan" />
+        <MetricCard title={t("dashboard.inProgress")} value={progressTasks} description={t("dashboard.inProgressDesc")} icon={Sparkles} trend="Strong flow" />
+        <MetricCard title={t("dashboard.completed")} value={completedTasks} description={t("dashboard.completedDesc")} icon={CheckCircle2} trend="Great momentum" />
+      </div>
 
-        <Tooltip />
-      </PieChart>
-    </ResponsiveContainer>
-  </div>
-</div>
+      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <Card className="p-5 sm:p-6">
+          <Section title={t("analytics.focusSummary")} description={t("analytics.focusSummaryDesc")}>
+            <div className={`mt-4 rounded-[24px] border p-6 ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5" : "border-slate-200 bg-slate-50"}`}>
+              <div className={`text-2xl font-semibold ${isCyberpunk ? "text-cyan-300" : "text-slate-900"}`}>{insightLabel}</div>
+              <p className={`mt-2 text-sm ${isCyberpunk ? "text-cyan-100/75" : "text-slate-600"}`}>{insightCopy}</p>
+              <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                <div className={`rounded-2xl border p-3 ${isCyberpunk ? "border-cyan-500/20" : "border-slate-200"}`}>
+                  <div className={`text-sm ${isCyberpunk ? "text-cyan-100/70" : "text-slate-500"}`}>{t("analytics.completed")}</div>
+                  <div className="mt-1 text-xl font-semibold">{completedTasks}</div>
+                </div>
+                <div className={`rounded-2xl border p-3 ${isCyberpunk ? "border-cyan-500/20" : "border-slate-200"}`}>
+                  <div className={`text-sm ${isCyberpunk ? "text-cyan-100/70" : "text-slate-500"}`}>{t("analytics.highPriority")}</div>
+                  <div className="mt-1 text-xl font-semibold">{highPriorityTasks}</div>
+                </div>
+                <div className={`rounded-2xl border p-3 ${isCyberpunk ? "border-cyan-500/20" : "border-slate-200"}`}>
+                  <div className={`text-sm ${isCyberpunk ? "text-cyan-100/70" : "text-slate-500"}`}>{t("analytics.flowState")}</div>
+                  <div className="mt-1 text-xl font-semibold">{completionRate >= 70 ? t("analytics.healthy") : t("analytics.needsCare")}</div>
+                </div>
+              </div>
+            </div>
+          </Section>
+        </Card>
+
+        <Card className="p-5 sm:p-6">
+          <Section title={t("analytics.priorityMix")} description={t("analytics.priorityMixDesc")}>
+            <div className="mt-4 space-y-3">
+              {[
+                { label: t("common.high"), value: tasks.filter((task) => task.priority === "high").length, tone: isCyberpunk ? "text-rose-300" : "text-rose-600" },
+                { label: t("common.medium"), value: tasks.filter((task) => task.priority === "medium").length, tone: isCyberpunk ? "text-cyan-300" : "text-blue-600" },
+                { label: t("common.low"), value: tasks.filter((task) => task.priority === "low").length, tone: isCyberpunk ? "text-slate-300" : "text-slate-600" },
+              ].map((item) => (
+                <div key={item.label} className={`flex items-center justify-between rounded-2xl border px-3 py-3 ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5" : "border-slate-200 bg-slate-50"}`}>
+                  <span className={`font-medium ${item.tone}`}>{item.label}</span>
+                  <span className="font-semibold">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </Section>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <Card className="p-5 sm:p-6">
+          <Section title={t("analytics.taskDistribution")} description={t("analytics.taskDistributionDesc")}>
+            <div className="mt-4 h-[320px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={chartData} cx="50%" cy="50%" innerRadius={60} outerRadius={110} paddingAngle={2} dataKey="value" label>
+                    {chartData.map((_, index) => <Cell key={index} fill={COLORS[index]} />)}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </Section>
+        </Card>
+
+        <Card className="p-5 sm:p-6">
+          <Section title={t("analytics.completionInsights")} description={t("analytics.completionInsightsDesc")}>
+            <div className={`rounded-3xl border p-6 ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5" : "border-slate-200 bg-slate-50"}`}>
+              <div className={`text-6xl font-semibold ${isCyberpunk ? "text-cyan-300" : "text-slate-900"}`}>{completionRate}%</div>
+              <p className={`mt-3 text-sm ${isCyberpunk ? "text-cyan-100/75" : "text-slate-600"}`}>{t("analytics.completionInsightBody")}</p>
+              <div className="mt-6 space-y-3 text-sm">
+                <div className="flex items-center justify-between"><span className={isCyberpunk ? "text-cyan-100/70" : "text-slate-600"}>{t("analytics.completed")}</span><span className="font-semibold">{completedTasks}</span></div>
+                <div className="flex items-center justify-between"><span className={isCyberpunk ? "text-cyan-100/70" : "text-slate-600"}>{t("analytics.inProgress")}</span><span className="font-semibold">{progressTasks}</span></div>
+                <div className="flex items-center justify-between"><span className={isCyberpunk ? "text-cyan-100/70" : "text-slate-600"}>{t("analytics.backlog")}</span><span className="font-semibold">{backlogTasks}</span></div>
+              </div>
+            </div>
+          </Section>
+        </Card>
       </div>
     </div>
   );
