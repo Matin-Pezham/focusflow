@@ -30,7 +30,6 @@ const Topbar: React.FC = () => {
     selectPrevious,
     setSelectedIndex,
     addRecentSearch,
-    clearRecentSearches,
   } = useSearchStore();
 
   const flattenedResults = useMemo(
