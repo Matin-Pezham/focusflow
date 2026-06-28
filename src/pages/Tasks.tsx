@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { DndContext } from "@dnd-kit/core";
-import type { DragEndEvent } from "@dnd-kit/core";
+import { DndContext, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, closestCorners, MeasuringStrategy } from "@dnd-kit/core";
+import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
 import { Search } from "lucide-react";
+import PageHero from "../components/ui/PageHero";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTaskStore, type TaskPriority } from "../stores/useTaskStore";
 import AddTaskForm from "../components/kanban/AddTaskForm";
@@ -16,6 +17,7 @@ const Tasks = () => {
   const isCyberpunk = theme === "cyberpunk";
   const [query, setQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<"all" | TaskPriority>("all");
+  const [activeColumnId, setActiveColumnId] = useState<"backlog" | "progress" | "completed" | null>(null);
 
   const filteredTasks = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -31,8 +33,35 @@ const Tasks = () => {
   const progress = filteredTasks.filter((task) => task.status === "progress");
   const completed = filteredTasks.filter((task) => task.status === "completed");
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 120,
+        tolerance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
+
+  const handleDragStart = (_event: DragStartEvent) => {
+    setActiveColumnId(null);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const overId = event.over?.id;
+    if (typeof overId === "string" && (overId === "backlog" || overId === "progress" || overId === "completed")) {
+      setActiveColumnId(overId);
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveColumnId(null);
     if (!over) return;
 
     const task = tasks.find((item) => item.id === active.id);
@@ -46,10 +75,7 @@ const Tasks = () => {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-2 sm:p-4 lg:p-6">
-      <div className={`rounded-[32px] border p-6 sm:p-8 ${isCyberpunk ? "border-cyan-500/20 bg-[#0f172a]/70 shadow-[0_0_35px_rgba(34,211,238,0.10)] backdrop-blur-2xl" : "border-slate-200/70 bg-white/80 shadow-[0_20px_55px_rgba(15,23,42,0.06)] backdrop-blur-xl"}`}>
-        <h1 className={`text-3xl font-semibold tracking-tight sm:text-4xl ${isCyberpunk ? "text-cyan-300" : "text-slate-900"}`}>{t("tasks.pageTitle")}</h1>
-        <p className={`mt-3 max-w-2xl text-sm sm:text-base ${isCyberpunk ? "text-cyan-100/75" : "text-slate-600"}`}>{t("tasks.pageDescription")}</p>
-      </div>
+      <PageHero title={t("tasks.pageTitle")} description={t("tasks.pageDescription")} badge={t("tasks.pageTitle")} />
 
       <AddTaskForm onAddTask={(title, priority) => addTask(title, priority)} />
 
@@ -73,7 +99,7 @@ const Tasks = () => {
                 key={option}
                 type="button"
                 onClick={() => setPriorityFilter(option)}
-                className={`rounded-full px-3 py-2 text-sm font-medium capitalize transition-all ${isActive ? (isCyberpunk ? "bg-cyan-400 text-slate-950" : "bg-slate-900 text-white") : (isCyberpunk ? "border border-cyan-500/20 bg-cyan-500/10 text-cyan-100/80" : "border border-slate-200 bg-white text-slate-600")}`}
+                className={`rounded-full px-3 py-2 text-sm font-medium capitalize transition-all duration-250 ${isActive ? (isCyberpunk ? "bg-cyan-400 text-slate-950 shadow-[0_0_18px_rgba(34,211,238,0.2)]" : "bg-slate-900 text-white") : (isCyberpunk ? "border border-cyan-500/20 bg-cyan-500/10 text-cyan-100/80 hover:bg-cyan-500/15" : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}`}
               >
                 {option === "all" ? t("common.allPriorities") : t(`common.${option}`)}
               </button>
@@ -82,9 +108,16 @@ const Tasks = () => {
         </div>
       </div>
 
-      <DndContext onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
         <div className="grid gap-6 xl:grid-cols-3">
-          <KanbanColumn id="backlog" title={t("dashboard.backlog")} count={backlog.length}>
+          <KanbanColumn id="backlog" title={t("dashboard.backlog")} count={backlog.length} isActive={activeColumnId === "backlog"}>
             {backlog.length === 0 ? (
               <div className={`rounded-2xl border border-dashed p-4 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5 text-cyan-100/70" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
                 {t("tasks.emptyBacklog")}
@@ -92,7 +125,7 @@ const Tasks = () => {
             ) : backlog.map((task) => <TaskCard key={task.id} id={task.id} title={task.title} priority={task.priority} onDelete={() => deleteTask(task.id)} />)}
           </KanbanColumn>
 
-          <KanbanColumn id="progress" title={t("dashboard.inProgress")} count={progress.length}>
+          <KanbanColumn id="progress" title={t("dashboard.inProgress")} count={progress.length} isActive={activeColumnId === "progress"}>
             {progress.length === 0 ? (
               <div className={`rounded-2xl border border-dashed p-4 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5 text-cyan-100/70" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
                 {t("tasks.emptyProgress")}
@@ -100,7 +133,7 @@ const Tasks = () => {
             ) : progress.map((task) => <TaskCard key={task.id} id={task.id} title={task.title} priority={task.priority} onDelete={() => deleteTask(task.id)} />)}
           </KanbanColumn>
 
-          <KanbanColumn id="completed" title={t("dashboard.completed")} count={completed.length}>
+          <KanbanColumn id="completed" title={t("dashboard.completed")} count={completed.length} isActive={activeColumnId === "completed"}>
             {completed.length === 0 ? (
               <div className={`rounded-2xl border border-dashed p-4 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5 text-cyan-100/70" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
                 {t("tasks.emptyCompleted")}

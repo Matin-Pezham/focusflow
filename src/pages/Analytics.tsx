@@ -2,6 +2,7 @@ import React from "react";
 import { BarChart3, CheckCircle2, CircleDashed, Sparkles } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, MetricCard, Section } from "../components/ui";
+import PageHero from "../components/ui/PageHero";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTaskStore } from "../stores/useTaskStore";
 import { useTranslation } from "../hooks/useTranslation";
@@ -31,22 +32,18 @@ const Analytics: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 p-2 sm:p-4 lg:p-6" dir={isRTL ? "rtl" : "ltr"}>
-      <div className={`rounded-[32px] border p-6 sm:p-8 ${isCyberpunk ? "border-cyan-500/20 bg-[#0f172a]/70 shadow-[0_0_35px_rgba(34,211,238,0.10)] backdrop-blur-2xl" : "border-slate-200/70 bg-white/80 shadow-[0_20px_55px_rgba(15,23,42,0.06)] backdrop-blur-xl"}`}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm ${isCyberpunk ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300" : "border-slate-200 bg-slate-100 text-slate-600"}`}>
-              <Sparkles size={16} />
-              {t("analytics.pageBadge")}
-            </div>
-            <h1 className={`mt-4 text-3xl font-semibold tracking-tight sm:text-4xl ${isCyberpunk ? "text-cyan-300" : "text-slate-900"}`}>{t("analytics.pageTitle")}</h1>
-            <p className={`mt-3 max-w-2xl text-sm sm:text-base ${isCyberpunk ? "text-cyan-100/75" : "text-slate-600"}`}>{t("analytics.pageDescription")}</p>
-          </div>
-          <div className={`rounded-2xl border px-4 py-3 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-200" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
+      <PageHero
+        title={t("analytics.pageTitle")}
+        description={t("analytics.pageDescription")}
+        badge={t("analytics.pageBadge")}
+        icon={Sparkles}
+        action={
+          <div className={`rounded-[20px] border px-4 py-3 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-200" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
             <div className="font-medium">{t("analytics.weeklyCompletion")}</div>
             <div className="mt-1 text-2xl font-semibold">{completionRate}%</div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard title={t("dashboard.totalTasks")} value={totalTasks} description={t("dashboard.totalTasksDesc")} icon={BarChart3} trend="Stable view" />

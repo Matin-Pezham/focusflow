@@ -7,15 +7,16 @@ interface Props {
   title: string;
   count: number;
   children: React.ReactNode;
+  isActive?: boolean;
 }
 
-const KanbanColumn: React.FC<Props> = ({ id, title, count, children }) => {
+const KanbanColumn: React.FC<Props> = ({ id, title, count, children, isActive = false }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
   const { theme } = useThemeStore();
   const isCyberpunk = theme === "cyberpunk";
 
   return (
-    <div ref={setNodeRef} className={`min-h-[500px] rounded-[28px] border p-5 transition-all ${isOver ? (isCyberpunk ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_20px_rgba(34,211,238,0.12)]" : "border-slate-400 bg-slate-100") : isCyberpunk ? "border-cyan-500/20 bg-[#0f172a]/70 backdrop-blur-2xl" : "border-slate-200/80 bg-white/70 backdrop-blur-xl"}`}>
+    <div ref={setNodeRef} className={`min-h-[500px] rounded-[28px] border p-5 transition-all duration-300 ${isOver || isActive ? (isCyberpunk ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_20px_rgba(34,211,238,0.12)]" : "border-indigo-300 bg-indigo-50/70 shadow-[0_16px_40px_rgba(79,70,229,0.08)]") : isCyberpunk ? "border-cyan-500/20 bg-[#0f172a]/70 backdrop-blur-2xl" : "border-slate-200/70 bg-white/75 shadow-[0_20px_60px_rgba(15,23,42,0.05)] backdrop-blur-xl"}`}>
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h2 className={`text-base font-semibold ${isCyberpunk ? "text-cyan-300" : "text-slate-900"}`}>{title}</h2>

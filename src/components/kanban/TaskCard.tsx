@@ -25,7 +25,7 @@ const TaskCard: React.FC<Props> = ({ id, title, priority, onDelete }) => {
   }[priority];
 
   return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={`cursor-grab rounded-2xl border p-4 transition-all hover:scale-[1.01] ${isCyberpunk ? "border-cyan-500/20 bg-[#10182c]/80 shadow-[0_8px_24px_rgba(34,211,238,0.08)]" : "border-slate-200 bg-white shadow-sm"}`}>
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={`cursor-grab touch-none rounded-[20px] border p-4 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(15,23,42,0.08)] active:scale-[1.01] ${isCyberpunk ? "border-cyan-500/20 bg-[#10182c]/80 shadow-[0_8px_24px_rgba(34,211,238,0.08)]" : "border-slate-200/80 bg-white/90 shadow-[0_10px_28px_rgba(15,23,42,0.05)] backdrop-blur-xl"}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-2">
           <div className={`mt-0.5 rounded-lg p-1 ${isCyberpunk ? "bg-cyan-500/10 text-cyan-300" : "bg-slate-100 text-slate-600"}`}>

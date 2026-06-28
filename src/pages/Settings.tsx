@@ -1,6 +1,7 @@
 import React from "react";
 import { Moon, Sun, Trash2, Sparkles, Download, RotateCcw } from "lucide-react";
 import { Card, Button } from "../components/ui";
+import PageHero from "../components/ui/PageHero";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTaskStore } from "../stores/useTaskStore";
 import { useTranslation } from "../hooks/useTranslation";
@@ -41,10 +42,7 @@ const Settings: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-2 sm:p-4 lg:p-6" dir={isRTL ? "rtl" : "ltr"}>
-      <div className={`rounded-[32px] border p-6 sm:p-8 ${isCyberpunk ? "border-cyan-500/20 bg-[#0f172a]/70 shadow-[0_0_35px_rgba(34,211,238,0.10)] backdrop-blur-2xl" : "border-slate-200/70 bg-white/80 shadow-[0_20px_55px_rgba(15,23,42,0.06)] backdrop-blur-xl"}`}>
-        <h1 className={`text-3xl font-semibold tracking-tight sm:text-4xl ${isCyberpunk ? "text-cyan-300" : "text-slate-900"}`}>{t("settings.pageTitle")}</h1>
-        <p className={`mt-3 text-sm sm:text-base ${isCyberpunk ? "text-cyan-100/75" : "text-slate-600"}`}>{t("settings.pageDescription")}</p>
-      </div>
+      <PageHero title={t("settings.pageTitle")} description={t("settings.pageDescription")} badge={t("settings.appearance")} icon={Sparkles} />
 
       <div className="grid gap-6">
         <Card className="p-5 sm:p-6">

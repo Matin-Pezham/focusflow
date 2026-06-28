@@ -1,6 +1,7 @@
 import { CheckCircle, Clock3, Flame, ListTodo, Sparkles } from "lucide-react";
 import { ResponsiveContainer, LineChart, Line, Tooltip, XAxis } from "recharts";
 import { Card, MetricCard, Section } from "../components/ui";
+import PageHero from "../components/ui/PageHero";
 import { useTranslation } from "../hooks/useTranslation";
 import { useTaskStore } from "../stores/useTaskStore";
 import { useThemeStore } from "../stores/useThemeStore";
@@ -37,23 +38,19 @@ const Dashboard = () => {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 p-2 sm:p-4 lg:p-6">
-      <div className={`rounded-[32px] border p-6 sm:p-8 ${isCyberpunk ? "border-cyan-500/20 bg-[#0f172a]/70 shadow-[0_0_35px_rgba(34,211,238,0.10)] backdrop-blur-2xl" : "border-slate-200/70 bg-white/80 shadow-[0_20px_55px_rgba(15,23,42,0.06)] backdrop-blur-xl"}`}>
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm ${isCyberpunk ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300" : "border-slate-200 bg-slate-100 text-slate-600"}`}>
-              <Sparkles size={16} />
-              {t("dashboard.heroBadge")}
-            </div>
-            <h1 className={`mt-4 text-3xl font-semibold tracking-tight sm:text-4xl ${isCyberpunk ? "text-cyan-300" : "text-slate-900"}`}>{t("dashboard.title")}</h1>
-            <p className={`mt-3 max-w-xl text-sm sm:text-base ${isCyberpunk ? "text-cyan-100/75" : "text-slate-600"}`}>{t("dashboard.description")}</p>
-          </div>
-          <div className={`rounded-2xl border px-4 py-3 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-200" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
+      <PageHero
+        title={t("dashboard.title")}
+        description={t("dashboard.description")}
+        badge={t("dashboard.heroBadge")}
+        icon={Sparkles}
+        action={
+          <div className={`rounded-[20px] border px-4 py-3 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-200" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
             <div className="font-medium">{t("dashboard.completionPace")}</div>
             <div className="mt-1 text-2xl font-semibold">{completionRate}%</div>
             <div className={`mt-1 ${isCyberpunk ? "text-cyan-100/70" : "text-slate-500"}`}>{t("dashboard.completionPaceValue")} {streak} {t("common.days")} • {nextMilestone}% {t("common.milestone")}</div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard title={t("dashboard.totalTasks")} value={totalTasks} description={t("dashboard.totalTasksDesc")} icon={ListTodo} trend="+2 planned this week" />
@@ -80,14 +77,14 @@ const Dashboard = () => {
         <Card className="p-5 sm:p-6">
           <Section title={t("dashboard.recentTasks")} description={t("dashboard.recentTasksDesc")}>
             {tasks.length === 0 ? (
-              <div className={`rounded-2xl border border-dashed p-6 text-sm ${isCyberpunk ? "border-cyan-400/20 bg-cyan-500/5 text-cyan-100/70" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
+              <div className={`rounded-[20px] border border-dashed p-6 text-sm ${isCyberpunk ? "border-cyan-400/20 bg-cyan-500/5 text-cyan-100/70" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
                 <div className="font-medium">{t("dashboard.emptyTitle")}</div>
                 <div className="mt-2">{t("dashboard.emptyDescription")}</div>
               </div>
             ) : (
               <div className="space-y-3">
                 {tasks.slice(0, 5).map((task) => (
-                  <div key={task.id} className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5" : "border-slate-200 bg-slate-50"}`}>
+                  <div key={task.id} className={`flex items-center justify-between rounded-[18px] border px-4 py-3 transition-all duration-250 hover:-translate-y-0.5 ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5" : "border-slate-200 bg-slate-50"}`}>
                     <div className="min-w-0">
                       <p className="truncate font-medium">{task.title}</p>
                       <p className={`mt-1 text-xs ${isCyberpunk ? "text-cyan-100/60" : "text-slate-500"}`}>{taskStatusLabel(task.status)}</p>

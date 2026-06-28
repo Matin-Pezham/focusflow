@@ -19,8 +19,8 @@ const Section: React.FC<SectionProps> = ({ title, description, actions, children
     <section className={cn("space-y-4", className)}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-          {description ? <p className={cn("mt-1 text-sm", currentTheme.secondary)}>{description}</p> : null}
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">{title}</h2>
+          {description ? <p className={cn("mt-1 text-sm leading-6", currentTheme.secondary)}>{description}</p> : null}
         </div>
         {actions ? <div>{actions}</div> : null}
       </div>

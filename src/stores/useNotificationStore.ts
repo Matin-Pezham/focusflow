@@ -37,7 +37,42 @@ const getInitialNotifications = (): Notification[] => {
 
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) return [];
+    if (!stored) {
+      return [
+        {
+          id: "seed-task-completed",
+          type: "task-completed",
+          title: "Task completed",
+          message: "You wrapped up the onboarding polish sprint.",
+          createdAt: new Date(Date.now() - 1000 * 60 * 6).toISOString(),
+          read: false,
+        },
+        {
+          id: "seed-task-created",
+          type: "task-created",
+          title: "Task created",
+          message: "A new focus task was added to your board.",
+          createdAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
+          read: false,
+        },
+        {
+          id: "seed-pomodoro-completed",
+          type: "pomodoro-completed",
+          title: "Pomodoro finished",
+          message: "Your deep work sprint just ended successfully.",
+          createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+          read: true,
+        },
+        {
+          id: "seed-milestone",
+          type: "productivity-milestone",
+          title: "Productivity milestone",
+          message: "You hit a new weekly momentum streak.",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+          read: false,
+        },
+      ];
+    }
 
     const parsed = JSON.parse(stored);
     return Array.isArray(parsed) ? parsed : [];
@@ -70,59 +105,63 @@ export const formatNotificationTime = (value: string) => {
   return `${deltaDays} days ago`;
 };
 
-export const useNotificationStore = create<NotificationStore>((set, get) => ({
-  notifications: getInitialNotifications(),
-  unreadCount: countUnread(getInitialNotifications()),
-  isOpen: false,
+export const useNotificationStore = create<NotificationStore>((set, get) => {
+  const initialNotifications = getInitialNotifications();
 
-  addNotification: (notification) => {
-    const nextNotification: Notification = {
-      ...notification,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      read: false,
-    };
+  return {
+    notifications: initialNotifications,
+    unreadCount: countUnread(initialNotifications),
+    isOpen: false,
 
-    const updated = [nextNotification, ...get().notifications].slice(0, 25);
-    syncStorage(updated);
+    addNotification: (notification) => {
+      const nextNotification: Notification = {
+        ...notification,
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        read: false,
+      };
 
-    set({
-      notifications: updated,
-      unreadCount: countUnread(updated),
-    });
-  },
+      const updated = [nextNotification, ...get().notifications].slice(0, 25);
+      syncStorage(updated);
 
-  markAsRead: (id) => {
-    const updated = get().notifications.map((notification) =>
-      notification.id === id ? { ...notification, read: true } : notification
-    );
-    syncStorage(updated);
+      set({
+        notifications: updated,
+        unreadCount: countUnread(updated),
+      });
+    },
 
-    set({
-      notifications: updated,
-      unreadCount: countUnread(updated),
-    });
-  },
+    markAsRead: (id) => {
+      const updated = get().notifications.map((notification) =>
+        notification.id === id ? { ...notification, read: true } : notification
+      );
+      syncStorage(updated);
 
-  markAllAsRead: () => {
-    const updated = get().notifications.map((notification) => ({ ...notification, read: true }));
-    syncStorage(updated);
+      set({
+        notifications: updated,
+        unreadCount: countUnread(updated),
+      });
+    },
 
-    set({
-      notifications: updated,
-      unreadCount: 0,
-    });
-  },
+    markAllAsRead: () => {
+      const updated = get().notifications.map((notification) => ({ ...notification, read: true }));
+      syncStorage(updated);
 
-  clearNotifications: () => {
-    syncStorage([]);
-    set({
-      notifications: [],
-      unreadCount: 0,
-    });
-  },
+      set({
+        notifications: updated,
+        unreadCount: 0,
+      });
+    },
 
-  toggleOpen: () => set((state) => ({ isOpen: !state.isOpen })),
-  open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false }),
-}));
+    clearNotifications: () => {
+      syncStorage([]);
+      set({
+        notifications: [],
+        unreadCount: 0,
+      });
+    },
+
+    toggleOpen: () => set((state) => ({ isOpen: !state.isOpen })),
+    open: () => set({ isOpen: true }),
+    close: () => set({ isOpen: false }),
+  };
+});

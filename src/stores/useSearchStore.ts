@@ -1,7 +1,8 @@
 import { create } from "zustand";
+import { useLanguageStore } from "./useLanguageStore";
 import { useTaskStore, type Task } from "./useTaskStore";
 
-export type SearchCategory = "tasks" | "goals" | "analytics";
+export type SearchCategory = "tasks" | "pages" | "analytics";
 
 export interface SearchResult {
   id: string;
@@ -19,6 +20,7 @@ export interface SearchResultGroup {
 
 interface SearchStore {
   query: string;
+  debouncedQuery: string;
   isOpen: boolean;
   selectedIndex: number;
   results: SearchResultGroup[];
@@ -36,30 +38,9 @@ interface SearchStore {
 
 const STORAGE_KEY = "focusflow-search-query";
 const RECENT_SEARCHES_KEY = "focusflow-recent-searches";
+const DEBOUNCE_MS = 180;
 
-const goalItems: SearchResult[] = [
-  {
-    id: "goal-portfolio",
-    category: "goals",
-    title: "Polish the portfolio experience",
-    description: "Bring the product feel closer to a premium client presentation.",
-    route: "/tasks",
-  },
-  {
-    id: "goal-focus",
-    category: "goals",
-    title: "Protect deep work blocks",
-    description: "Keep your best work protected with a calm focus routine.",
-    route: "/pomodoro",
-  },
-  {
-    id: "goal-analytics",
-    category: "goals",
-    title: "Review weekly momentum",
-    description: "Inspect completion trends and improve your weekly rhythm.",
-    route: "/analytics",
-  },
-];
+let debounceTimer: number | undefined;
 
 const normalizeQuery = (value: string) => value.trim().toLowerCase();
 
@@ -106,18 +87,57 @@ const buildAnalyticsResults = (tasks: Task[], query: string): SearchResult[] => 
     },
   ];
 
-  return items.filter((item) =>
-    matchesQuery(`${item.title} ${item.description}`.toLowerCase(), query)
-  );
+  return items.filter((item) => matchesQuery(`${item.title} ${item.description}`.toLowerCase(), query));
+};
+
+const buildPageResults = (query: string): SearchResult[] => {
+  const isPersian = useLanguageStore.getState().locale === "fa";
+  const pageItems: SearchResult[] = [
+    {
+      id: "page-dashboard",
+      category: "pages",
+      title: isPersian ? "پیشخوان" : "Dashboard",
+      description: isPersian ? "نمای کلی، وظایف اخیر و ابزارک‌های بهره‌وری" : "Overview, recent tasks, and productivity widgets",
+      route: "/",
+    },
+    {
+      id: "page-focus",
+      category: "pages",
+      title: isPersian ? "صفحه تمرکز" : "Focus page",
+      description: isPersian ? "بلوک‌های تمرکز و زمان‌بندی جلسه" : "Protect deep work with a focused session",
+      route: "/pomodoro",
+    },
+    {
+      id: "page-tasks",
+      category: "pages",
+      title: isPersian ? "بورد وظایف" : "Tasks board",
+      description: isPersian ? "سازماندهی بصری کارها و مدیریت اولویت‌ها" : "Organize work visually and track priorities",
+      route: "/tasks",
+    },
+    {
+      id: "page-analytics",
+      category: "pages",
+      title: isPersian ? "تحلیل‌ها" : "Analytics",
+      description: isPersian ? "بررسی روند تکمیل و پیشرفت هفتگی" : "Review completion pace and weekly momentum",
+      route: "/analytics",
+    },
+    {
+      id: "page-settings",
+      category: "pages",
+      title: isPersian ? "تنظیمات" : "Settings",
+      description: isPersian ? "تنظیم ظاهر و مدیریت داده‌ها" : "Fine-tune appearance and data preferences",
+      route: "/settings",
+    },
+  ];
+
+  return pageItems.filter((item) => matchesQuery(`${item.title} ${item.description}`.toLowerCase(), query));
 };
 
 const buildSearchResults = (query: string, tasks: Task[]): SearchResultGroup[] => {
   const normalizedQuery = normalizeQuery(query);
 
   const taskItems = tasks
-    .filter((task) =>
-      matchesQuery(`${task.title} ${task.priority} ${task.status}`.toLowerCase(), normalizedQuery)
-    )
+    .filter((task) => matchesQuery(`${task.title} ${task.priority} ${task.status}`.toLowerCase(), normalizedQuery))
     .map((task) => ({
       id: `task-${task.id}`,
       category: "tasks" as const,
@@ -126,15 +146,12 @@ const buildSearchResults = (query: string, tasks: Task[]): SearchResultGroup[] =
       route: "/tasks",
     }));
 
-  const goalItemsFiltered = goalItems.filter((item) =>
-    matchesQuery(`${item.title} ${item.description}`.toLowerCase(), normalizedQuery)
-  );
-
+  const pageItems = buildPageResults(normalizedQuery);
   const analyticsItems = buildAnalyticsResults(tasks, normalizedQuery);
 
   const groups: SearchResultGroup[] = [
     { category: "tasks", title: "Tasks", items: taskItems },
-    { category: "goals", title: "Goals", items: goalItemsFiltered },
+    { category: "pages", title: "Pages", items: pageItems },
     { category: "analytics", title: "Analytics", items: analyticsItems },
   ];
 
@@ -159,6 +176,7 @@ const getInitialRecentSearches = (): string[] => {
 
 export const useSearchStore = create<SearchStore>((set, get) => ({
   query: getInitialQuery(),
+  debouncedQuery: getInitialQuery(),
   isOpen: false,
   selectedIndex: 0,
   results: buildSearchResults(getInitialQuery(), useTaskStore.getState().tasks),
@@ -166,7 +184,6 @@ export const useSearchStore = create<SearchStore>((set, get) => ({
 
   setQuery: (query) => {
     const normalized = query.trim();
-    const hasQuery = normalized.length > 0;
 
     if (typeof window !== "undefined") {
       if (normalized.length > 0) {
@@ -178,10 +195,26 @@ export const useSearchStore = create<SearchStore>((set, get) => ({
 
     set({
       query: normalized,
-      isOpen: hasQuery,
+      isOpen: true,
       selectedIndex: 0,
-      results: buildSearchResults(normalized, useTaskStore.getState().tasks),
+      results: normalized.length > 0 ? [] : [],
     });
+
+    if (debounceTimer) {
+      window.clearTimeout(debounceTimer);
+    }
+
+    if (!normalized) {
+      set({ debouncedQuery: "", results: [] });
+      return;
+    }
+
+    debounceTimer = window.setTimeout(() => {
+      set({
+        debouncedQuery: normalized,
+        results: buildSearchResults(normalized, useTaskStore.getState().tasks),
+      });
+    }, DEBOUNCE_MS);
   },
 
   openSearch: () => set({ isOpen: true }),
@@ -191,7 +224,11 @@ export const useSearchStore = create<SearchStore>((set, get) => ({
       window.localStorage.removeItem(STORAGE_KEY);
     }
 
-    set({ query: "", isOpen: false, selectedIndex: 0, results: [] });
+    if (debounceTimer) {
+      window.clearTimeout(debounceTimer);
+    }
+
+    set({ query: "", debouncedQuery: "", isOpen: true, selectedIndex: 0, results: [] });
   },
 
   setSelectedIndex: (index) => set({ selectedIndex: index }),
@@ -232,9 +269,9 @@ export const useSearchStore = create<SearchStore>((set, get) => ({
 
 useTaskStore.subscribe((state) => {
   const searchStore = useSearchStore.getState();
-  if (searchStore.query.length > 0) {
+  if (searchStore.debouncedQuery.length > 0) {
     useSearchStore.setState({
-      results: buildSearchResults(searchStore.query, state.tasks),
+      results: buildSearchResults(searchStore.debouncedQuery, state.tasks),
     });
   }
 });
