@@ -1,5 +1,6 @@
 import { CheckCircle, Clock3, Flame, ListTodo, Sparkles } from "lucide-react";
 import { ResponsiveContainer, LineChart, Line, Tooltip, XAxis } from "recharts";
+import ProductivityCoach from "../components/dashboard/ProductivityCoach";
 import { Card, MetricCard, Section } from "../components/ui";
 import PageHero from "../components/ui/PageHero";
 import { useTranslation } from "../hooks/useTranslation";
@@ -58,6 +59,8 @@ const Dashboard = () => {
         <MetricCard title={t("dashboard.inProgress")} value={progressTasks} description={t("dashboard.inProgressDesc")} icon={Flame} trend="Momentum is healthy" />
         <MetricCard title={t("dashboard.completed")} value={completedTasks} description={t("dashboard.completedDesc")} icon={CheckCircle} trend="Steady completion" />
       </div>
+
+      <ProductivityCoach />
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
         <Card className="p-5 sm:p-6">

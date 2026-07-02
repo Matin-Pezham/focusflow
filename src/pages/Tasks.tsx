@@ -4,10 +4,11 @@ import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core"
 import { Search } from "lucide-react";
 import PageHero from "../components/ui/PageHero";
 import { useThemeStore } from "../stores/useThemeStore";
-import { useTaskStore, type TaskPriority } from "../stores/useTaskStore";
+import { useTaskStore, type Task, type TaskPriority } from "../stores/useTaskStore";
 import AddTaskForm from "../components/kanban/AddTaskForm";
 import TaskCard from "../components/kanban/TaskCard";
 import KanbanColumn from "../components/kanban/KanbanColumn";
+import FocusModeOverlay from "../components/focus/FocusModeOverlay";
 import { useTranslation } from "../hooks/useTranslation";
 
 const Tasks = () => {
@@ -18,6 +19,7 @@ const Tasks = () => {
   const [query, setQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<"all" | TaskPriority>("all");
   const [activeColumnId, setActiveColumnId] = useState<"backlog" | "progress" | "completed" | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const filteredTasks = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -73,6 +75,14 @@ const Tasks = () => {
     moveTask(task.id, targetColumn);
   };
 
+  const handleOpenFocusMode = (task: Task) => {
+    setSelectedTask(task);
+  };
+
+  const handleCloseFocusMode = () => {
+    setSelectedTask(null);
+  };
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-2 sm:p-4 lg:p-6">
       <PageHero title={t("tasks.pageTitle")} description={t("tasks.pageDescription")} badge={t("tasks.pageTitle")} />
@@ -122,7 +132,7 @@ const Tasks = () => {
               <div className={`rounded-2xl border border-dashed p-4 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5 text-cyan-100/70" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
                 {t("tasks.emptyBacklog")}
               </div>
-            ) : backlog.map((task) => <TaskCard key={task.id} id={task.id} title={task.title} priority={task.priority} onDelete={() => deleteTask(task.id)} />)}
+            ) : backlog.map((task) => <TaskCard key={task.id} id={task.id} title={task.title} priority={task.priority} onDelete={() => deleteTask(task.id)} onOpenFocusMode={() => handleOpenFocusMode(task)} />)}
           </KanbanColumn>
 
           <KanbanColumn id="progress" title={t("dashboard.inProgress")} count={progress.length} isActive={activeColumnId === "progress"}>
@@ -130,7 +140,7 @@ const Tasks = () => {
               <div className={`rounded-2xl border border-dashed p-4 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5 text-cyan-100/70" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
                 {t("tasks.emptyProgress")}
               </div>
-            ) : progress.map((task) => <TaskCard key={task.id} id={task.id} title={task.title} priority={task.priority} onDelete={() => deleteTask(task.id)} />)}
+            ) : progress.map((task) => <TaskCard key={task.id} id={task.id} title={task.title} priority={task.priority} onDelete={() => deleteTask(task.id)} onOpenFocusMode={() => handleOpenFocusMode(task)} />)}
           </KanbanColumn>
 
           <KanbanColumn id="completed" title={t("dashboard.completed")} count={completed.length} isActive={activeColumnId === "completed"}>
@@ -138,10 +148,12 @@ const Tasks = () => {
               <div className={`rounded-2xl border border-dashed p-4 text-sm ${isCyberpunk ? "border-cyan-500/20 bg-cyan-500/5 text-cyan-100/70" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
                 {t("tasks.emptyCompleted")}
               </div>
-            ) : completed.map((task) => <TaskCard key={task.id} id={task.id} title={task.title} priority={task.priority} onDelete={() => deleteTask(task.id)} />)}
+            ) : completed.map((task) => <TaskCard key={task.id} id={task.id} title={task.title} priority={task.priority} onDelete={() => deleteTask(task.id)} onOpenFocusMode={() => handleOpenFocusMode(task)} />)}
           </KanbanColumn>
         </div>
       </DndContext>
+
+      <FocusModeOverlay task={selectedTask} isOpen={Boolean(selectedTask)} onClose={handleCloseFocusMode} />
     </div>
   );
 };

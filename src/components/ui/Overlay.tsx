@@ -103,9 +103,9 @@ const Overlay: React.FC<OverlayProps> = ({
         }
       }}
     >
-      <div className={`relative flex min-h-screen w-full ${positionClassName ?? "items-start justify-center px-4 pt-24 sm:px-6 lg:px-8"}`}>
+      <div className={`relative flex min-h-screen w-full ${positionClassName ?? "items-center justify-center px-3 py-4 sm:px-6 sm:py-6 lg:px-8"}`}>
         <div
-          className={`relative z-50 transition-all duration-300 ${isVisible ? "translate-y-0 scale-100 opacity-100" : "translate-y-2 scale-[0.98] opacity-0"} ${contentClassName ?? "w-full"}`}
+          className={`relative z-50 w-full transition-all duration-300 ${isVisible ? "translate-y-0 scale-100 opacity-100" : "translate-y-2 scale-[0.98] opacity-0"} ${contentClassName ?? "w-full"}`}
           style={contentStyle}
           onMouseDown={(event) => event.stopPropagation()}
           role="dialog"

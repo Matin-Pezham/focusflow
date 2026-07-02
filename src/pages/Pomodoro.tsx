@@ -1,64 +1,33 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Pause, Play, RotateCcw, TimerReset } from "lucide-react";
 import { Card, Button } from "../components/ui";
 import PageHero from "../components/ui/PageHero";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useTranslation } from "../hooks/useTranslation";
-import { useNotificationStore } from "../stores/useNotificationStore";
-
-const INITIAL_TIME = 25 * 60;
+import { usePomodoroStore, formatPomodoroTime, INITIAL_TIME } from "../stores/usePomodoroStore";
 
 const Pomodoro: React.FC = () => {
   const { theme } = useThemeStore();
   const { t, isRTL } = useTranslation();
-  const addNotification = useNotificationStore((state) => state.addNotification);
   const isCyberpunk = theme === "cyberpunk";
-
-  const [seconds, setSeconds] = useState(() => {
-    const saved = localStorage.getItem("pomodoro-seconds");
-    return saved ? Number(saved) : INITIAL_TIME;
-  });
-
-  const [isRunning, setIsRunning] = useState(() => {
-    const saved = localStorage.getItem("pomodoro-running");
-    return saved === "true";
-  });
+  const { seconds, isRunning, start, pause, reset, toggle, tick } = usePomodoroStore();
 
   useEffect(() => {
-    let timer: number;
-    if (isRunning && seconds > 0) {
-      timer = window.setInterval(() => setSeconds((prev) => prev - 1), 1000);
-    }
-    return () => clearInterval(timer);
-  }, [isRunning, seconds]);
+    const timer = window.setInterval(() => {
+      tick();
+    }, 1000);
 
-  useEffect(() => {
-    localStorage.setItem("pomodoro-seconds", String(seconds));
-  }, [seconds]);
-
-  useEffect(() => {
-    if (seconds === 0 && isRunning) {
-      addNotification({
-        type: "pomodoro-completed",
-        title: "Pomodoro complete",
-        message: "A focused session has finished. Great work.",
-      });
-      setIsRunning(false);
-    }
-  }, [seconds, isRunning, addNotification]);
-
-  useEffect(() => {
-    localStorage.setItem("pomodoro-running", String(isRunning));
-  }, [isRunning]);
+    return () => window.clearInterval(timer);
+  }, [tick]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.code === "Space") {
         event.preventDefault();
-        setIsRunning((value) => !value);
+        toggle();
       }
       if (event.code === "KeyR") {
-        handleReset();
+        reset();
       }
     };
 
@@ -66,18 +35,7 @@ const Pomodoro: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const formatTime = (time: number) => {
-    const mins = Math.floor(time / 60);
-    const secs = time % 60;
-    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
-
   const progress = useMemo(() => (seconds / INITIAL_TIME) * 100, [seconds]);
-
-  const handleReset = () => {
-    setSeconds(INITIAL_TIME);
-    setIsRunning(false);
-  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-2 sm:p-4 lg:p-6" dir={isRTL ? "rtl" : "ltr"}>
@@ -90,11 +48,11 @@ const Pomodoro: React.FC = () => {
               <TimerReset size={16} />
               {t("pomodoro.shortcutHint")}
             </div>
-            <div className={`relative flex h-64 w-64 items-center justify-center rounded-full border p-6 shadow-inner ${isCyberpunk ? "border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 via-slate-900/5 to-violet-500/15" : "border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100"}`}>
+            <div className={`relative flex h-64 w-64 items-center justify-center rounded-full border p-6 shadow-inner ${isCyberpunk ? "border-cyan-400/20 bg-linear-to-br from-cyan-500/15 via-slate-900/5 to-violet-500/15" : "border-slate-200 bg-linear-to-br from-slate-50 via-white to-slate-100"}`}>
               <div className="absolute inset-4 rounded-full border border-white/10" />
               <div className="absolute inset-0 rounded-full" style={{ background: `conic-gradient(${isCyberpunk ? "#22d3ee" : "#2563eb"} ${progress}%, rgba(255,255,255,0.08) ${progress}% 100%)` }} />
               <div className={`relative z-10 rounded-full px-8 py-4 text-center shadow-[0_20px_50px_rgba(15,23,42,0.12)] ${isCyberpunk ? "bg-[#0f172a]/90 text-cyan-200" : "bg-white text-slate-900"}`}>
-                <div className="text-6xl font-semibold tracking-[0.2em]">{formatTime(seconds)}</div>
+                <div className="text-6xl font-semibold tracking-[0.2em]">{formatPomodoroTime(seconds)}</div>
                 <div className={`mt-2 text-sm ${isCyberpunk ? "text-cyan-100/70" : "text-slate-500"}`}>{isRunning ? t("pomodoro.inSession") : t("pomodoro.ready")}</div>
               </div>
             </div>
@@ -114,15 +72,15 @@ const Pomodoro: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button onClick={() => setIsRunning(true)} variant="primary">
+              <Button onClick={start} variant="primary">
                 <Play size={16} />
                 {t("pomodoro.start")}
               </Button>
-              <Button onClick={() => setIsRunning(false)} variant="secondary">
+              <Button onClick={pause} variant="secondary">
                 <Pause size={16} />
                 {t("pomodoro.pause")}
               </Button>
-              <Button onClick={handleReset} variant="secondary">
+              <Button onClick={reset} variant="secondary">
                 <RotateCcw size={16} />
                 {t("pomodoro.reset")}
               </Button>
