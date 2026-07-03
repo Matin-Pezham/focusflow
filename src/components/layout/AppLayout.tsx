@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import MobileBottomNav from "./MobileBottomNav";
+import AICopilot from "../ai/AICopilot";
 import { useTaskStore } from "../../stores/useTaskStore";
 import { useThemeStore } from "../../stores/useThemeStore";
 import { useLanguageStore } from "../../stores/useLanguageStore";
@@ -59,6 +60,7 @@ const AppLayout: React.FC = () => {
           </div>
         </main>
         <MobileBottomNav />
+        <AICopilot />
       </div>
     </div>
   );

@@ -235,6 +235,30 @@ export interface TranslationDictionary {
     goalLabel: string;
     analyticsLabel: string;
   };
+  aiCopilot: {
+    openLabel: string;
+    closeLabel: string;
+    headerTitle: string;
+    headerSubtitle: string;
+    onlineStatus: string;
+    productivityScore: string;
+    emptyMessage: string;
+    inputLabel: string;
+    placeholder: string;
+    shortcutHint: string;
+    sendButton: string;
+    clearButton: string;
+    bubbleUserLabel: string;
+    bubbleAssistantLabel: string;
+    typing: string;
+    examples: {
+      planMyDay: string;
+      analyzeProductivity: string;
+      recommendNextTask: string;
+      todaysProgress: string;
+      helpMeFocus: string;
+    };
+  };
   notifications: {
     label: string;
     title: string;
