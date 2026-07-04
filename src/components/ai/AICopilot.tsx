@@ -64,6 +64,7 @@ const AICopilot: React.FC = () => {
 
   const navigate = useNavigate();
   const [draft, setDraft] = useState("");
+  const [isComposing, setIsComposing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const chatRef = useRef<HTMLDivElement | null>(null);
@@ -170,14 +171,26 @@ const AICopilot: React.FC = () => {
       }
     } finally {
       setTyping(false);
+      window.requestAnimationFrame(() => textareaRef.current?.focus());
     }
   };
 
   const handleTextareaKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (isComposing) return;
+
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       handleSend();
+      return;
     }
+
+    if (event.key === " " && event.currentTarget.value.length === 0) {
+      event.stopPropagation();
+    }
+  };
+
+  const handleTextareaKeyUp = () => {
+    handleResize();
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -368,7 +381,10 @@ const AICopilot: React.FC = () => {
                 ref={textareaRef}
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
+                onCompositionStart={() => setIsComposing(true)}
+                onCompositionEnd={() => setIsComposing(false)}
                 onKeyDown={handleTextareaKeyDown}
+                onKeyUp={handleTextareaKeyUp}
                 placeholder={t("aiCopilot.placeholder")}
                 disabled={isTyping}
                 aria-label={t("aiCopilot.inputLabel")}

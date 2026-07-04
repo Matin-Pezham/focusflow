@@ -12,9 +12,16 @@ const localize = (locale: string, en: string, fa: string) => (locale === "fa" ? 
 const normalizeText = (text: string) =>
   text
     .trim()
-    .replace(/[؟!.,؛]/g, "")
+    .replace(/[؟!.,؛،]/g, "")
     .replace(/\s+/g, " ")
     .toLowerCase();
+
+const getTaskStatusFromText = (text: string): string | null => {
+  if (/(completed|complete|done|تکمیل|انجام شده|انجام‌شده)/.test(text)) return "completed";
+  if (/(in progress|progress|doing|active|در حال انجام|در حال کار|در حال پیشرفت)/.test(text)) return "progress";
+  if (/(backlog|todo|later|بک لاگ|بک‌لاگ|بعدا|به بعد)/.test(text)) return "backlog";
+  return null;
+};
 
 const detectIntent = (text: string, locale: string): { intent: string; entities: Record<string, string> } => {
   const normalized = normalizeText(text);
@@ -32,11 +39,11 @@ const detectIntent = (text: string, locale: string): { intent: string; entities:
     createTask: /(create task|add task|add a new task|new task)/,
     deleteTask: /(delete task|remove task|delete the task|remove the task)/,
     completeTask: /(complete task|finish task|mark task as complete|complete this task)/,
-    moveTask: /(move .* to|change .* to|set .* to)/,
-    startFocus: /(start focus|begin focus|start pomodoro|begin pomodoro|focus mode|pomodoro)/,
-    switchTheme: /(switch theme to|set theme to|enable (cyberpunk|light)|dark theme|light theme)/,
-    switchLanguage: /(switch language to|set language to|change language to|language to|زبان را|زبان)/,
     clearCompleted: /(clear completed|remove completed|delete completed|clear done|delete done)/,
+    startFocus: /(start focus|begin focus|start pomodoro|begin pomodoro|focus mode|pomodoro)/,
+    switchTheme: /(switch(?: theme)?|set(?: theme)?|enable|activate|turn on)\b.*\b(cyberpunk|light|dark)\b/i,
+    switchLanguage: /(switch(?: language)?|set(?: language)?|change(?: language)?|set to)\b.*\b(persian|english)\b/i,
+    moveTask: /(?:move|change)\s+.*?\s+(?:to|into)\s+(?:backlog|progress|completed|in progress|done|todo)/i,
   };
 
   const persian = {
@@ -51,11 +58,11 @@ const detectIntent = (text: string, locale: string): { intent: string; entities:
     createTask: /(یه تسک جدید بساز|یه کار جدید اضافه کن|یک تسک جدید بساز|یک کار جدید اضافه کن|ایجاد تسک جدید|وظیفه جدید|یک وظیفه جدید)/,
     deleteTask: /(این تسک رو حذف کن|تسک را حذف کن|این کار را پاک کن|این وظیفه را پاک کن|این کار را حذف کن|تسک را پاک کن)/,
     completeTask: /(این تسک رو کامل کن|تسک را تکمیل کن|این کار را انجام شد کن|وظیفه را انجام شده کن|تسک را کامل کن|کاملش کن)/,
-    moveTask: /(انتقال .* به|برو .* به|تغییر .* به|به .* منتقل کن|به .* تغییر بده|به .* ببر)/,
-    startFocus: /(حالت تمرکز رو شروع کن|تمرکز رو شروع کن|پومودورو رو شروع کن|شروع پومودورو|شروع حالت تمرکز|تمرکز را شروع کن)/,
-    switchTheme: /(تم سایبرپانک رو فعال کن|حالت سایبرپانک را فعال کن|حالت سایبرپانک را روشن کن|تم روشن را فعال کن|حالت روشن را فعال کن|تم روشن را روشن کن|تم روشن)/,
-    switchLanguage: /(زبان را فارسی کن|زبان را انگلیسی کن|زبان رو فارسی کن|زبان رو انگلیسی کن|به فارسی برو|به انگلیسی برو|فارسی کن|انگلیسی کن)/,
     clearCompleted: /(همه کارهای انجام شده رو پاک کن|پاک کردن کارهای انجام شده|حذف وظایف کامل شده|پاک کن کارهای انجام شده|پاک کردن وظایف کامل شده)/,
+    startFocus: /(حالت تمرکز رو شروع کن|تمرکز رو شروع کن|پومودورو رو شروع کن|شروع پومودورو|شروع حالت تمرکز|تمرکز را شروع کن)/,
+    switchTheme: /(تم|حالت)\s*(سایبرپانک|روشن|تاریک|تیره)|(?:سایبرپانک|روشن|تاریک|تیره)/,
+    switchLanguage: /(زبان|language)\s*(را|رو)?\s*(فارسی|انگلیسی|persian|english)/,
+    moveTask: /(انتقال .* به|برو .* به|تغییر .* به|به .* منتقل کن|به .* ببر)/,
   };
 
   const patterns = locale === "fa" ? persian : english;
@@ -71,15 +78,15 @@ const detectIntent = (text: string, locale: string): { intent: string; entities:
   if (patterns.createTask.test(normalized)) return { intent: "createTask", entities };
   if (patterns.deleteTask.test(normalized)) return { intent: "deleteTask", entities };
   if (patterns.completeTask.test(normalized)) return { intent: "completeTask", entities };
+  if (patterns.clearCompleted.test(normalized)) return { intent: "clearCompletedTasks", entities };
+  if (patterns.startFocus.test(normalized)) return { intent: "startFocus", entities };
+  if (patterns.switchTheme.test(normalized)) return { intent: "switchTheme", entities };
+  if (patterns.switchLanguage.test(normalized)) return { intent: "switchLanguage", entities };
   if (patterns.moveTask.test(normalized)) {
     const match = normalized.match(/(?:move|انتقال|برو|تغییر)\s+(.*?)\s+(?:to|به|روی|روی)/);
     if (match) entities.title = match[1].trim();
     return { intent: "moveTask", entities };
   }
-  if (patterns.startFocus.test(normalized)) return { intent: "startFocus", entities };
-  if (patterns.switchTheme.test(normalized)) return { intent: "switchTheme", entities };
-  if (patterns.switchLanguage.test(normalized)) return { intent: "switchLanguage", entities };
-  if (patterns.clearCompleted.test(normalized)) return { intent: "clearCompletedTasks", entities };
 
   return { intent: "unknown", entities };
 };
@@ -95,6 +102,14 @@ const extractEntities = (text: string, intent: string): Record<string, string> =
 
   if (intent === "deleteTask" || intent === "completeTask") {
     const match = normalized.match(/(?:delete task|remove task|delete the task|remove the task|این تسک رو حذف کن|تسک را حذف کن|این کار را پاک کن|این وظیفه را پاک کن|این تسک رو کامل کن|تسک را تکمیل کن|این کار را انجام شد کن|وظیفه را انجام شده کن)\s*(.*)/);
+    if (match?.[1]) entities.title = match[1].trim();
+  }
+
+  if (intent === "moveTask") {
+    const status = getTaskStatusFromText(normalized);
+    if (status) entities.status = status;
+
+    const match = normalized.match(/(?:move|change|انتقال|برو|تغییر)\s+(.*?)\s+(?:to|into|به|روی|روی)/);
     if (match?.[1]) entities.title = match[1].trim();
   }
 
@@ -154,6 +169,7 @@ export const evaluatePrompt = (
   const highBacklog = context.backlogTasks > Math.max(3, Math.round(context.totalTasks * 0.4));
   const lowFocus = context.focusSessions === 0;
   const lowCompletion = context.completionRate < 50 && context.totalTasks > 0;
+  const isFocusRelevantPrompt = /(focus|pomodoro|concentrat|deep work|session|timer|distraction|study|work flow)/i.test(prompt);
 
   if (command) {
     return {
@@ -290,7 +306,7 @@ export const evaluatePrompt = (
     };
   }
 
-  if (lowFocus) {
+  if (isFocusRelevantPrompt && lowFocus) {
     return {
       text: loc(
         `You haven’t started a focus session yet. Start one now to boost your progress.`,
