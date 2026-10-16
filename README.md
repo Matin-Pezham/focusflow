@@ -2,7 +2,7 @@
 
 **A React + TypeScript productivity dashboard built to showcase interactive front-end development, maintainable UI architecture, and state management.**
 
-[**Live Demo**](https://focusflow-pearl-beta.vercel.app/) · [**Source Code**](https://github.com/Matin-Pezham/focusflow)  [**Developer on GitHub ↗**](https://github.com/Matin-Pezham) · [**Dexoura ↗**](https://dexoura.com)
+[**Live Demo**](https://focusflow-pearl-beta.vercel.app/) · [**Source Code**](https://github.com/Matin-Pezham/focusflow)         [**Developer on GitHub ↗**](https://github.com/Matin-Pezham) · [**Dexoura ↗**](https://dexoura.com)
 
 ## Overview
 
