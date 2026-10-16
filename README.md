@@ -1,75 +1,89 @@
-# React + TypeScript + Vite
+# FocusFlow
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**A React + TypeScript productivity dashboard built to showcase interactive front-end development, maintainable UI architecture, and state management.**
 
-Currently, two official plugins are available:
+[**Live Demo**](https://focusflow-pearl-beta.vercel.app/) · [**Source Code**](https://github.com/Matin-Pezham/focusflow)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Overview
 
-## React Compiler
+FocusFlow is a portfolio project centered on a task-management dashboard. It demonstrates how I approach building a structured, interactive React application rather than a collection of static pages.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The focus is on reusable UI, predictable application state, and a responsive, product-oriented interface.
 
-## Expanding the ESLint configuration
+## Technical Highlights
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **React + TypeScript:** Component-based development with static type checking.
+- **Zustand:** Lightweight state-management tooling.
+- **React Router:** Routing infrastructure for application navigation.
+- **dnd-kit:** Drag-and-drop tooling included in the project stack.
+- **Recharts:** Charting library included for dashboard-style data visualizations.
+- **Tailwind CSS:** Utility-first styling.
+- **Vite:** Local development and production builds.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+> This section describes the project's verified dependencies and architectural focus. For a walkthrough of implemented interactions, use the live demo.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Area | Technology |
+| --- | --- |
+| UI | React 19, TypeScript |
+| Build | Vite |
+| State management | Zustand |
+| Navigation | React Router |
+| Drag-and-drop library | dnd-kit |
+| Charts | Recharts |
+| Styling | Tailwind CSS |
+| Icons | Lucide React |
 
+## Getting Started
+
+**Prerequisites:** A supported Node.js version and npm.
+
+```bash
+git clone https://github.com/Matin-Pezham/focusflow.git
+cd focusflow
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open the local URL printed by Vite in your terminal.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Available Commands
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run dev       # Start the development server
+npm run lint      # Run ESLint
+npm run build     # Type-check and create a production build
+npm run preview   # Preview the production build locally
 ```
+
+**Testing status:** The current `package.json` does not define a dedicated automated test command. A focused regression-test suite is a planned quality improvement; no test coverage is claimed here.
+
+## Engineering Approach
+
+My workflow combines independent engineering judgment with AI-assisted analysis where appropriate:
+
+1. Understand the expected behavior and reproduce an issue.
+2. Inspect the relevant components, state flow, and dependencies.
+3. Use AI tools to accelerate investigation or generate candidate changes.
+4. Review the proposed patch and preserve the existing architecture.
+5. Run available checks and manually verify affected user flows.
+
+**AI assists the workflow; architecture decisions, code review, and final validation remain my responsibility.**
+
+## Next Improvements
+
+- Document representative user flows with screenshots or a short walkthrough.
+- Add automated tests for critical task-management interactions.
+- Audit accessibility, keyboard navigation, and responsive edge cases.
+- Record small bug fixes as reproducible, tested changes.
+
+## Project Scope
+
+FocusFlow is a portfolio demonstration of front-end development. The public demo is not presented as a commissioned client project or evidence of commercial production usage.
+
+## Developer
+
+**Matin Pezham** — React Developer | AI-Augmented Front-End Engineering
+
+[GitHub Profile](https://github.com/Matin-Pezham)
